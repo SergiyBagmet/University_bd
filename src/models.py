@@ -1,4 +1,4 @@
-from sqlalchemy import  Column, Integer, String, ForeignKey
+from sqlalchemy import  Column, Integer, String, ForeignKey, Date
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -51,6 +51,7 @@ class Grade(Base):
     __tablename__ = 'grades'
     id = Column(Integer, primary_key=True)
     score = Column(Integer, nullable=False)
+    date_of = Column('date_of', Date, nullable=True)
     student_id = Column(Integer, ForeignKey("students.id", ondelete='CASCADE', onupdate='CASCADE'))
     subject_id = Column(Integer, ForeignKey("subjects.id", ondelete='CASCADE', onupdate='CASCADE'))
     student = relationship("Student", back_populates="grades")
