@@ -1,21 +1,21 @@
-import configparser
-from pathlib import Path
+from contextlib import contextmanager
 
+from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 
 
-file_config = Path(__file__).parent.parent.joinpath("config.ini")
-config = configparser.ConfigParser()
-config.read(file_config)
+class DBManager:
+    def __init__(self, db_url: str):
+        engine = create_engine(db_url, echo=True, pool_size=5, max_overflow=0)
+        DBsession = sessionmaker(bind=engine)
+        self.session :Session = DBsession()
 
-username = config.get("DB", "USER")
-password = config.get("DB", "PASSWORD")
-db_name = config.get("DB", "DB_NAME")
-domain = config.get("DB", "DOMEIN")
-port = config.get("DB", "PORT")
-url = f"postgresql://{username}:{password}@{domain}:{port}/{db_name}"
-
-engine = create_engine(url, echo=True, pool_size=5, max_overflow=0)
-DBsession = sessionmaker(bind=engine)
-session = DBsession()
+    @contextmanager
+    def connection(self):
+        try:
+            yield self.session
+            self.session.commit()
+        except (IntegrityError, SQLAlchemyError) as e:
+            self.session.rollback()
+            print(f"[Error]: {e}")
