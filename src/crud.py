@@ -1,6 +1,6 @@
-from src.db import DBManager
 import typing as t
 
+from src.db import DBManager
 
 class CRUDManager:
     def __init__(self, dbm: DBManager):

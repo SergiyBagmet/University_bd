@@ -43,7 +43,7 @@ class Subject(Base):
     __tablename__ = 'subjects'
     id = Column(Integer, primary_key=True)
     name = Column(String(50), unique=True, nullable=False)
-    group_id = Column(Integer, ForeignKey("teachers.id", ondelete='CASCADE', onupdate='CASCADE'))
+    teacher_id = Column(Integer, ForeignKey("teachers.id", ondelete='CASCADE', onupdate='CASCADE'))
     teacher = relationship("Teacher", back_populates="subjects")
     grades = relationship("Grade", back_populates="subject")
     

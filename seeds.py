@@ -12,7 +12,7 @@ from src.db import DBManager
 NUMBER_TEACHERS = 6
 NUMBER_STUDENTS = 50
 
-subjects = [
+SUBJECTS = [
     "Математика",
     "Теоретична інформатика",
     "Архітектура комп'ютерів",
@@ -23,7 +23,7 @@ subjects = [
     "Криптографія та інформаційна безпека"
 ]
 
-groups = ["мт-11-3", "мм-13-1", "кн-12-2"]
+GROUPS = ["мт-11-3", "мм-13-1", "кн-12-2"]
 
 
 class UniverSeeder:
@@ -32,11 +32,24 @@ class UniverSeeder:
         self.fake = Faker()
 
     def seed_teachers(self, number_teachers):
-        teachers = [Teacher(first_name=self.fake.first_name(), last_name=self.fake.last_name()) for _ in range(number_teachers)]
+        teachers = [
+            Teacher(
+                first_name=self.fake.first_name(), 
+                last_name=self.fake.last_name()
+                ) 
+            for _ in range(number_teachers)
+            ]
         self.crud_m.create_many(teachers)
         
-    # def seed_subjects(self, subjects, number_teachers):
-    #     data_subjects = zip(subjects, iter(randint(1, number_teachers) for _ in range(len(subjects))))
+    def seed_subjects(self, subjects, number_teachers):
+        subjects = [
+            Subject(
+                name=sub, 
+                teacher_id=randint(1, number_teachers)
+                ) 
+            for sub in subjects
+            ]
+        self.crud_m.create_many(subjects)
         
     # def seed_groups(self, groups):
     #     sql = "INSERT INTO groups (name) VALUES (?)"
@@ -82,5 +95,5 @@ if __name__ == "__main__":
     seeder = UniverSeeder(crud_m)
     
     # seeder.seed_teachers(NUMBER_TEACHERS)
-
+    seeder.seed_subjects(SUBJECTS, NUMBER_TEACHERS)
 
