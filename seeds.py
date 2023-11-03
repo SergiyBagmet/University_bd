@@ -51,42 +51,52 @@ class UniverSeeder:
             ]
         self.crud_m.create_many(subjects)
         
-    # def seed_groups(self, groups):
-    #     sql = "INSERT INTO groups (name) VALUES (?)"
-    #     data_groups = zip(groups, )
-    #     self.crud.execute_many_sql(sql, data_groups)
+    def seed_groups(self, groups):
+        groups = [Group(name=gr)for gr in groups]
+        self.crud_m.create_many(groups)
     
-    # def seed_students(self, groups, number_students):
-    #     sql = "INSERT INTO students (fullname, group_id) VALUES (?, ?)"
-    #     students = [self.fake.name() for _ in range(number_students)]
-    #     data_students = zip(students, iter(randint(1, len(groups))for _ in range(number_students)))
-    #     self.crud.execute_many_sql(sql, data_students)
-    
-    # def _random_date(self) -> str:
-    #     start_date = datetime(2023, 9, 1)  # Начало учебного года
-    #     end_date = datetime(2024, 6, 30)  # Конец учебного года
-    #     while True:
-    #         fake_date : datetime = self.fake.date_between_dates(start_date, end_date)
-    #         if fake_date.isoweekday() < 6:
-    #             return fake_date.strftime("%Y-%m-%d")
-    
-    # def seed_grades(self, subjects , number_students):
-    #     sql = "INSERT INTO grades (subject_id, student_id, grade, date_of ) VALUES (?, ?, ?, ?)"
+    def seed_students(self, groups, number_students):
+        students = [
+            Student(
+                first_name=self.fake.first_name(), 
+                last_name=self.fake.last_name(),
+                group_id=randint(1, len(groups)) 
+                ) 
+            for _ in range(number_students)
+            ]
+        self.crud_m.create_many(students)
         
-    #     grades = []
-    #     grade_counters = {student_id: 0 for student_id in range(1, number_students + 1)}
+    
+    def _random_date(self) -> str:
+        start_date = datetime(2023, 9, 1)  # Начало учебного года
+        end_date = datetime(2024, 6, 30)  # Конец учебного года
+        while True:
+            fake_date : datetime = self.fake.date_between_dates(start_date, end_date)
+            if fake_date.isoweekday() < 6:
+                return fake_date.strftime("%Y-%m-%d")
+    
+    def seed_grades(self, subjects , number_students):
+        grades = []
+        grade_counters = {student_id: 0 for student_id in range(1, number_students + 1)}
         
-    #     while any(count < 20 for count in grade_counters.values()):
-    #         subject_id = randint(1, len(subjects))
-    #         student_id = randint(1, number_students)
-    #         grade = randint(1, 12)
-    #         date = self._random_date()
+        while any(count < 20 for count in grade_counters.values()):
+            subject_id = randint(1, len(subjects))
+            student_id = randint(1, number_students)
+            grade = randint(1, 100)
+            date = self._random_date()
             
-    #         if grade_counters[student_id] < 20:
-    #             grades.append((subject_id, student_id, grade, date))
-    #             grade_counters[student_id] += 1
+            if grade_counters[student_id] < 20:
+                grades.append(
+                    Grade(
+                        score=grade,
+                        date_of=date,
+                        student_id=student_id,
+                        subject_id=subject_id
+                        )
+                    )
+                grade_counters[student_id] += 1
                    
-    #     self.crud.execute_many_sql(sql, grades)
+        self.crud_m.create_many(grades)
 
 if __name__ == "__main__":
     
@@ -95,5 +105,8 @@ if __name__ == "__main__":
     seeder = UniverSeeder(crud_m)
     
     # seeder.seed_teachers(NUMBER_TEACHERS)
-    seeder.seed_subjects(SUBJECTS, NUMBER_TEACHERS)
+    # seeder.seed_subjects(SUBJECTS, NUMBER_TEACHERS)
+    # seeder.seed_groups(GROUPS)
+    # seeder.seed_students(GROUPS, NUMBER_STUDENTS)
+    # seeder.seed_grades(SUBJECTS, NUMBER_STUDENTS)
 
