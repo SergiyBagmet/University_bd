@@ -1,5 +1,5 @@
-from sqlalchemy import func, and_, or_, between, desc
-from sqlalchemy.orm import Query, Session
+from sqlalchemy import func, and_, desc
+from sqlalchemy.orm import Query
 from sqlalchemy.sql import select
 from tabulate import tabulate
 
@@ -176,7 +176,7 @@ if __name__ == "__main__":
     crud_m = CRUDManager(dbm)
     sel = Selecter()
 
-    for i in range(10, 11):
+    for i in range(1, 11):
         query : Query = getattr(sel, f'select_{i}')()
         titel = sel.titel
         print(query.column_descriptions)
