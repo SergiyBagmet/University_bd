@@ -6,19 +6,32 @@ from sqlalchemy.ext.hybrid import hybrid_property
 Base = declarative_base()
 
 
-class Group(Base):
+class BaseModel(Base):
+    __abstract__ = True  # Делает класс абстрактным для SQLAlchemy
+    
+    id = Column(Integer, primary_key=True)  # Общий первичный ключ для всех моделей
+    
+    @classmethod
+    def get_column_names(cls):
+        # Возвращает список имен столбцов для класса
+        c_names = [column.name for column in cls.__table__.columns]
+        return c_names[-1:] + c_names[:-1]
+    
+    def __str__(self):
+        columns_attr = [f"{c_name}={getattr(self, c_name)}" for c_name in self.get_column_names()]
+        return  f'<{self.__class__.__name__} ({", ".join(map(str, columns_attr))})>'
+
+
+class Group(BaseModel):
     __tablename__ = 'groups'
-    id = Column(Integer, primary_key=True)
+    
     name = Column(String(50), unique=True, nullable=False)
     students = relationship("Student", back_populates="group")
     
-    def __str__(self):
-        return f"Group(id={self.id}, name='{self.name}')"
-
-
-class Student(Base):
+    
+class Student(BaseModel):
     __tablename__ = 'students'
-    id = Column(Integer, primary_key=True)
+    
     first_name = Column(String(100), nullable=False)
     last_name = Column(String(100), nullable=False)
     group_id = Column(Integer, ForeignKey("groups.id", ondelete='CASCADE', onupdate='CASCADE'))
@@ -27,11 +40,11 @@ class Student(Base):
     grades = relationship("Grade", back_populates="student")
     
     @hybrid_property
-    def name(self):
+    def fullname(self):
         return f"{self.first_name} {self.last_name}"
     
-    @name.setter
-    def name(self, value: str):
+    @fullname.setter
+    def fullname(self, value: str):
         parts = value.split(' ')
         if len(parts) >= 2:
             self.first_name = parts[0]
@@ -42,22 +55,20 @@ class Student(Base):
         else:
             raise ValueError("Invalid fullname format. Please provide at least a first name.")
     
-    def __str__(self):
-        return f"Student(id={self.id}, first_name='{self.first_name}', last_name='{self.last_name}', group_id={self.group_id})"    
-    
-class Teacher(Base):
+
+class Teacher(BaseModel):
     __tablename__ = 'teachers'
-    id = Column(Integer, primary_key=True)
+ 
     first_name = Column(String(100), nullable=False)
     last_name = Column(String(100), nullable=False)
     subjects = relationship("Subject", back_populates="teacher")
     
     @hybrid_property
-    def name(self):
+    def fullname(self):
         return f"{self.first_name} {self.last_name}"
     
-    @name.setter
-    def name(self, value: str):
+    @fullname.setter
+    def fullname(self, value: str):
         parts = value.split(' ')
         if len(parts) >= 2:
             self.first_name = parts[0]
@@ -68,26 +79,20 @@ class Teacher(Base):
         else:
             raise ValueError("Invalid fullname format. Please provide at least a first name.")
     
-    def __str__(self):
-        return f"Teacher(id={self.id}, first_name='{self.first_name}', last_name='{self.last_name}')"    
-        
-    
        
-class Subject(Base):
+class Subject(BaseModel):
     __tablename__ = 'subjects'
-    id = Column(Integer, primary_key=True)
+
     name = Column(String(50), unique=True, nullable=False)
     teacher_id = Column(Integer, ForeignKey("teachers.id", ondelete='CASCADE', onupdate='CASCADE'))
     
     teacher = relationship("Teacher", back_populates="subjects")
     grades = relationship("Grade", back_populates="subject")
-    
-    def __str__(self):
-        return f"Subject(id={self.id}, name='{self.name}', teacher_id={self.teacher_id})"
-    
-class Grade(Base):
+
+
+class Grade(BaseModel):
     __tablename__ = 'grades'
-    id = Column(Integer, primary_key=True)
+   
     score = Column(Integer, nullable=False)
     date_of = Column('date_of', Date, nullable=True)
     student_id = Column(Integer, ForeignKey("students.id", ondelete='CASCADE', onupdate='CASCADE'))
@@ -95,7 +100,3 @@ class Grade(Base):
     
     student = relationship("Student", back_populates="grades")
     subject = relationship("Subject", back_populates="grades")
-    
-    def __str__(self):
-        return f"Grade(id={self.id}, score={self.score}, date_of={self.date_of}, student_id={self.student_id}, subject_id={self.subject_id})"    
-        
