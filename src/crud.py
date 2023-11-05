@@ -15,12 +15,12 @@ class CRUDManager:
         with self.dbm.connection() as session:
             session.add_all(models)
     
-    def read(self, model: BaseModel, primary_key: int):
+    def read(self, model: t.Type[BaseModel], primary_key: int) -> BaseModel | None:
         # Метод для чтения объекта по первичному ключу
         with self.dbm.connection() as session:
             return session.query(model).get(primary_key)
     
-    def read_all(self, model: BaseModel):
+    def read_all(self, model: t.Type[BaseModel]):
         with self.dbm.connection() as session:
             return session.query(model).all()    
 
@@ -33,6 +33,7 @@ class CRUDManager:
         # Метод для удаления объекта
         with self.dbm.connection() as session:
             session.delete(model)
+        return True
             
     def custom_query(self, query):
         # Выполняет произвольный SQL-запрос и возвращает результат

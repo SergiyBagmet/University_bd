@@ -11,7 +11,7 @@ class BaseModel(Base):
     
     id = Column(Integer, primary_key=True)  # Общий первичный ключ для всех моделей
     
-    args_spase = None
+    args_spase = None 
     
     @classmethod
     def get_column_names(cls):

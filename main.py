@@ -53,19 +53,41 @@ class DatabaseCLI:
             case "read":
                 if (id:=self.cli_args.get('id')) is None:
                     raise ValueError("id [--id/-i] is required for 'read' action.")
-                one_data = self.crud.read(model, id)
-                print(one_data)
+                model_obj= self.crud.read(model, id)
+                if model_obj is not None:
+                    print(model_obj)
+                else:
+                    print(f"[ERROR]: No record found '{model.__name__}' with id '{id}' to read.")    
                 
             case "list":
                 data = self.crud.read_all(model)
                 print("\n".join(map(str, data)))
                 
             case "update":
-                pass
-            
+                if (id := self.cli_args.get('id')) is None:
+                    raise ValueError("id [--id/-i] is required for 'update' action.")
+                
+                existing_obj = self.crud.read(model, id)
+                if existing_obj is None:
+                    print(f"[ERROR]: No record found with id {id} to update.")
+                
+                model_obj = self._set_model(model)
+                model_obj.id = id
+                
+                # Выполняем операцию обновления.
+                self.crud.update(model_obj)
+                print(f"[UPDATE] {model_obj} ")
+                
             case "delete":
-                pass
-            
+                if (id:=self.cli_args.get('id')) is None:
+                    raise ValueError("id [--id/-i] is required for 'delete' action.")
+
+                if (model_obj:= self.crud.read(model, id)) is None:
+                    print(f"[ERROR]: No {model.__name__} found with id {id} to delete or error occurred.")
+                
+                else:
+                    self.crud.delete(model_obj)
+                    print(f"[DELETE] {model_obj} with id {id} has been deleted.")  
             case _:
                 print("[ERROR]: uncknowon action ")
 
