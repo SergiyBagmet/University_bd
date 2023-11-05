@@ -11,14 +11,21 @@ class BaseModel(Base):
     
     id = Column(Integer, primary_key=True)  # Общий первичный ключ для всех моделей
     
+    args_spase = None
+    
     @classmethod
     def get_column_names(cls):
         # Возвращает список имен столбцов для класса
         c_names = [column.name for column in cls.__table__.columns]
-        return c_names[-1:] + c_names[:-1]
-    
+        cls.args_spase = c_names[-1:] + c_names[:-1]
+        
+        if all(hasattr(cls, attr) for attr in ['first_name', 'last_name']): # КОСТЫЛЬ
+            c_names.append('name')
+        return c_names
+        
     def __str__(self):
-        columns_attr = [f"{c_name}={getattr(self, c_name)}" for c_name in self.get_column_names()]
+        self.get_column_names()
+        columns_attr = [f"{c_name}={getattr(self, c_name)}" for c_name in self.args_spase]
         return  f'<{self.__class__.__name__} ({", ".join(map(str, columns_attr))})>'
 
 
@@ -40,11 +47,11 @@ class Student(BaseModel):
     grades = relationship("Grade", back_populates="student")
     
     @hybrid_property
-    def fullname(self):
+    def name(self):
         return f"{self.first_name} {self.last_name}"
     
-    @fullname.setter
-    def fullname(self, value: str):
+    @name.setter
+    def name(self, value: str):
         parts = value.split(' ')
         if len(parts) >= 2:
             self.first_name = parts[0]
@@ -64,11 +71,11 @@ class Teacher(BaseModel):
     subjects = relationship("Subject", back_populates="teacher")
     
     @hybrid_property
-    def fullname(self):
+    def name(self):
         return f"{self.first_name} {self.last_name}"
     
-    @fullname.setter
-    def fullname(self, value: str):
+    @name.setter
+    def name(self, value: str):
         parts = value.split(' ')
         if len(parts) >= 2:
             self.first_name = parts[0]

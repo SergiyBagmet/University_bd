@@ -1,7 +1,7 @@
 import argparse
+import typing as t
 
-
-from src.models import Student, Teacher, Subject, Group, Base
+from src.models import Student, Teacher, Subject, Group, BaseModel
 from src.crud import CRUDManager
 from src.config import url
 from src.db import DBManager
@@ -16,42 +16,58 @@ class DatabaseCLI:
         self.parser.add_argument("--model", "-m", help="Model name (Student, Teacher, Subject, Group)", required=True)
         self.parser.add_argument("--name", "-n", help="'Fullname' for (Student, Teacher) or name for (Subject, Group)")
         self.parser.add_argument("--id", "-i", type=int, help="ID for update or remove actions")
-        self.args = None
+        self.parser.add_argument("--group_id", "-g", type=int, help="Group ID")
+        self.parser.add_argument("--sub_id", "-s", type=int, help="Subject ID")
+        self.parser.add_argument("--teacher_id", "-t", type=int, help="Teacher ID")
+        self.parser.add_argument("--student_id", "-st", type=int, help="Student ID")
         
-
-    def _get_model(self):
-        cls_name = self.args.model
-        model_cls = globals().get(cls_name)
-        if model_cls is not None and issubclass(model_cls, Base):
-            return model_cls
+        self.cli_args = vars(self.parser.parse_args())
+    
+    def _get_model_cls(self):
+        cls_name = self.cli_args.get('model')
+        model = globals().get(cls_name)
+        if model is not None and issubclass(model, BaseModel):
+            return model
   
         raise ValueError(f"Invalid model name: {cls_name} is not a valid model.")
-        
+    
+    def _set_model(self, model: t.Type[BaseModel]):
+        column_names = model.get_column_names()[1:] # column names with out id(primary_key)
+        model_obj = model()
+        for column_name in column_names:
+            if (val:=self.cli_args.get(column_name)) is not None:
+                setattr(model_obj, column_name, val)     
+        return model_obj
 
     def run(self):
-        self.args = self.parser.parse_args()
-        model_cls = self._get_model()
+        model = self._get_model_cls()
         
-        match self.args.action:
+        match self.cli_args.get('action'):
+            
             case "create":
-                if (name:=self.args.name) is None:
+                if self.cli_args.get('name') is None:
                     raise ValueError("name [--name/-n] is required for 'create' action.")
-                model_obj = model_cls(name=name) # TODO
+                model_obj = self._set_model(model)
                 self.crud.create(model_obj)
+                
             case "read":
-                if (id:=self.args.id) is None:
+                if (id:=self.cli_args.get('id')) is None:
                     raise ValueError("id [--id/-i] is required for 'read' action.")
-                res = self.crud.read(model_cls, id)
-                print(res)
+                one_data = self.crud.read(model, id)
+                print(one_data)
+                
             case "list":
-                models = self.crud.read_all(model_cls)
-                print("\n".join(map(str,models)))
+                data = self.crud.read_all(model)
+                print("\n".join(map(str, data)))
+                
             case "update":
                 pass
+            
             case "delete":
                 pass
+            
             case _:
-                print("[ERROR]: uncknowon aaction ")
+                print("[ERROR]: uncknowon action ")
 
 def main():
     dbm = DBManager(url)
@@ -62,4 +78,13 @@ def main():
 if __name__ == "__main__":
     main()
     
-  
+    # s = Student()
+    # setattr(s, "name", "Sergey Bagmet")
+    # print(s)
+    
+
+    
+    
+    
+
+    
