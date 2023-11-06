@@ -7,7 +7,7 @@ from sqlalchemy import create_engine
 
 class DBManager:
     def __init__(self, db_url: str):
-        engine = create_engine(db_url, echo=True, pool_size=5, max_overflow=0)
+        engine = create_engine(db_url, echo=False, pool_size=5, max_overflow=0)
         DBsession = sessionmaker(bind=engine)
         self.session :Session = DBsession()
 
@@ -19,5 +19,6 @@ class DBManager:
         except (IntegrityError, SQLAlchemyError) as e:
             self.session.rollback()
             print(f"[Error]: {e}")
-        finally:
-            self.session.close()     
+    
+    def close_session(self):
+        self.session.close()    

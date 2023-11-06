@@ -1,15 +1,16 @@
 import argparse
 import typing as t
 
-from src.models import BaseModel
+from src.models import BaseModel, model_registry
 from src.crud import CRUDManager
 from src.config import url
 from src.db import DBManager
 
 
 class DatabaseCLI:
-    def __init__(self, crud: CRUDManager):
+    def __init__(self, crud: CRUDManager, model_registry: dict[str, t.Type]):
         self.crud = crud
+        self.model_registry = model_registry
         
         self.parser = argparse.ArgumentParser(description="Database CRUD Operations")
         self.parser.add_argument("--action", "-a", help="Action (create, list, update, remove)", required=True)
@@ -25,12 +26,11 @@ class DatabaseCLI:
     
     def _get_model_cls(self):
         cls_name = self.cli_args.get('model')
-        model = globals().get(cls_name)
-        if model is not None and issubclass(model, BaseModel):
-            return model
+        model = self.model_registry.get(cls_name)
+        if model is None:
+            raise ValueError(f"Invalid model name: {cls_name} is not a valid model.")
+        return model
   
-        raise ValueError(f"Invalid model name: {cls_name} is not a valid model.")
-    
     def _set_model(self, model: t.Type[BaseModel]):
         column_names = model.get_column_names()[1:] # column names with out id(primary_key)
         model_obj = model()
@@ -92,8 +92,10 @@ class DatabaseCLI:
 def main():
     dbm = DBManager(url)
     crud_m = CRUDManager(dbm)
-    DB_cli = DatabaseCLI(crud_m)
+    DB_cli = DatabaseCLI(crud_m, model_registry)
     DB_cli.run()
+    
+    dbm.close_session()
 
 if __name__ == "__main__":
     main()

@@ -106,9 +106,9 @@ if __name__ == "__main__":
     crud_m = CRUDManager(dbm)
     seeder = UniverSeeder(crud_m)
     
-    # seeder.seed_teachers(NUMBER_TEACHERS)
-    # seeder.seed_subjects(SUBJECTS, NUMBER_TEACHERS)
-    # seeder.seed_groups(GROUPS)
-    # seeder.seed_students(GROUPS, NUMBER_STUDENTS)
-    # seeder.seed_grades(SUBJECTS, NUMBER_STUDENTS)
+    seeder.seed_teachers(NUMBER_TEACHERS)
+    seeder.seed_subjects(SUBJECTS, NUMBER_TEACHERS)
+    seeder.seed_groups(GROUPS)
+    seeder.seed_students(GROUPS, NUMBER_STUDENTS)
+    seeder.seed_grades(SUBJECTS, NUMBER_STUDENTS)
 

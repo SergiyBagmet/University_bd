@@ -5,6 +5,15 @@ from sqlalchemy.ext.hybrid import hybrid_property
 
 Base = declarative_base()
 
+model_registry = {}
+
+def register_model(cls):
+    """
+    Декоратор для регистрации классов моделей в реестре.
+    """
+    model_registry[cls.__name__] = cls
+    return cls
+
 
 class BaseModel(Base):
     __abstract__ = True  # Делает класс абстрактным для SQLAlchemy
@@ -28,14 +37,14 @@ class BaseModel(Base):
         columns_attr = [f"{c_name}={getattr(self, c_name)}" for c_name in self.args_spase]
         return  f'<{self.__class__.__name__} ({", ".join(map(str, columns_attr))})>'
 
-
+@register_model
 class Group(BaseModel):
     __tablename__ = 'groups'
     
     name = Column(String(50), unique=True, nullable=False)
     students = relationship("Student", back_populates="group")
     
-    
+@register_model 
 class Student(BaseModel):
     __tablename__ = 'students'
     
@@ -62,7 +71,7 @@ class Student(BaseModel):
         else:
             raise ValueError("Invalid fullname format. Please provide at least a first name.")
     
-
+@register_model
 class Teacher(BaseModel):
     __tablename__ = 'teachers'
  
@@ -86,7 +95,7 @@ class Teacher(BaseModel):
         else:
             raise ValueError("Invalid fullname format. Please provide at least a first name.")
     
-       
+@register_model       
 class Subject(BaseModel):
     __tablename__ = 'subjects'
 
@@ -96,7 +105,7 @@ class Subject(BaseModel):
     teacher = relationship("Teacher", back_populates="subjects")
     grades = relationship("Grade", back_populates="subject")
 
-
+@register_model
 class Grade(BaseModel):
     __tablename__ = 'grades'
    
@@ -107,3 +116,6 @@ class Grade(BaseModel):
     
     student = relationship("Student", back_populates="grades")
     subject = relationship("Subject", back_populates="grades")
+    
+
+      
