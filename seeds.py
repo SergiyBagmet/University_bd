@@ -98,6 +98,8 @@ class UniverSeeder:
                    
         self.crud_m.create_many(grades)
 
+
+
 if __name__ == "__main__":
     
     dbm = DBManager(url)

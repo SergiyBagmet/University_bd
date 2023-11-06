@@ -1,8 +1,9 @@
+import typing as t
+
 from sqlalchemy import func, and_, desc
 from sqlalchemy.orm import Query
 from sqlalchemy.sql import select
 from tabulate import tabulate
-
 
 from src.models import Teacher, Subject, Group, Student, Grade
 from src.crud import CRUDManager
@@ -10,10 +11,23 @@ from src.config import url
 from src.db import DBManager
 
 session = DBManager(url).session
-
+dbm = DBManager(url)
+crud_m = CRUDManager(dbm)
 
 class Selecter:
     titel = None
+    
+    @classmethod
+    def run_all(cls, crud_m: CRUDManager) -> t.Generator:
+        self = cls()
+        for i in range(1, 11):
+            query : Query = getattr(self, f'select_{i}')()
+            titel = self.titel
+            descr_name = [data['name'] for data in query.column_descriptions]
+            result = crud_m.custom_query(query)  
+            tabl = tabulate(tabular_data=result, headers=descr_name, tablefmt="heavy_outline")
+            yield f"{titel}\n{tabl}\n"
+       
   
     def select_1(self, limit=5) -> Query:
         self.titel = "1. Знайти 5 студентів із найбільшим середнім балом з усіх предметів."
@@ -171,17 +185,10 @@ class Selecter:
         )
         return query
 
-if __name__ == "__main__":
-    dbm = DBManager(url)
-    crud_m = CRUDManager(dbm)
-    sel = Selecter()
+def selects():
+    for res in Selecter.run_all(crud_m):
+        input('\nAny to next')
+        print(res)
 
-    for i in range(1, 11):
-        query : Query = getattr(sel, f'select_{i}')()
-        titel = sel.titel
-        print(query.column_descriptions)
-        descr_name = [data['name'] for data in query.column_descriptions]
-        result = crud_m.custom_query(query)  
-        tabl = tabulate(tabular_data=result, headers=descr_name, tablefmt="heavy_outline")
-        print(f"{titel}\n{tabl}\n")
-       
+if __name__ == "__main__":
+    selects()

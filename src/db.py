@@ -19,3 +19,5 @@ class DBManager:
         except (IntegrityError, SQLAlchemyError) as e:
             self.session.rollback()
             print(f"[Error]: {e}")
+        finally:
+            self.session.close()     

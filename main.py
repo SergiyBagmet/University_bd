@@ -1,7 +1,7 @@
 import argparse
 import typing as t
 
-from src.models import Student, Teacher, Subject, Group, BaseModel
+from src.models import BaseModel
 from src.crud import CRUDManager
 from src.config import url
 from src.db import DBManager
@@ -73,8 +73,7 @@ class DatabaseCLI:
                 
                 model_obj = self._set_model(model)
                 model_obj.id = id
-                
-                # Выполняем операцию обновления.
+        
                 self.crud.update(model_obj)
                 print(f"[UPDATE] {model_obj} ")
                 
@@ -84,12 +83,11 @@ class DatabaseCLI:
 
                 if (model_obj:= self.crud.read(model, id)) is None:
                     print(f"[ERROR]: No {model.__name__} found with id {id} to delete or error occurred.")
-                
                 else:
                     self.crud.delete(model_obj)
                     print(f"[DELETE] {model_obj} with id {id} has been deleted.")  
             case _:
-                print("[ERROR]: uncknowon action ")
+                print("[ERROR]: Unknown action ")
 
 def main():
     dbm = DBManager(url)
@@ -100,9 +98,6 @@ def main():
 if __name__ == "__main__":
     main()
     
-    # s = Student()
-    # setattr(s, "name", "Sergey Bagmet")
-    # print(s)
     
 
     
